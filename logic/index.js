@@ -59,8 +59,8 @@ const generateSegments = (numRows, numColumns, segmentLength) => {
   for (const c of range(numColumns - segmentLength + 1)) {
     for (const r of range(numRows - segmentLength + 1)) {
       const segment = []
-      for (const t of range(segmentLength).reverse()) {
-        segment.push([r + t, c + t])
+      for (const t of range(segmentLength)) {
+        segment.push([r + segmentLength - 1 - t, c + t])
       }
       segments.push(segment)
     }
