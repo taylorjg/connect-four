@@ -45,7 +45,7 @@ const main = async () => {
         console.log('Draw!')
         break
       }
-      const computerMove = findBestMove(board, 3)
+      const computerMove = findBestMove(board, 5)
       console.log(`computerMove: ${computerMove}`)
       board = board.makeMove(computerMove)
       board.draw()
