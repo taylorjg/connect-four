@@ -1,0 +1,15 @@
+{
+  "name": "connect-four",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "Jonathan Taylor",
+  "license": "MIT",
+  "dependencies": {},
+  "scripts": {
+    "eslint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint": "^6.6.0"
+  }
+}
