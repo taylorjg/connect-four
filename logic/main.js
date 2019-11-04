@@ -10,21 +10,18 @@ const rl = readline.createInterface({
 const getHumanMove = async () => {
   for (; ;) {
     try {
-      process.stdout.write('Enter a column number 0-6: ')
       return await new Promise((resolve, reject) => {
-        const onLine = line => {
-          rl.off('line', onLine)
-          const col = parseInt(line, 10)
-          if (Number.isInteger(col) && col >= 0 && col <= 6) {
-            resolve(col)
+        rl.question('Enter a column number 0-6: ', answer => {
+          const n = parseInt(answer, 10)
+          if (Number.isInteger(n) && n >= 0 && n <= 6) {
+            resolve(n)
           } else {
             reject()
           }
-        }
-        rl.on('line', onLine)
+        })
       })
     } catch (_) {
-      process.stdout.write('Please try again\n')
+      // ignore
     }
   }
 }
