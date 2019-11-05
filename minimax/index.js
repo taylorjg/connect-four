@@ -36,36 +36,30 @@ const minimax = (board, maximising, originalPlayer, maxDepth) => {
     return board.evaluate(originalPlayer)
   }
   if (maximising) {
-    let bestEval = Number.MIN_SAFE_INTEGER
-    // TODO: board.legalMoves().reduce ?
-    for (const move of board.legalMoves()) {
-      const result = minimax(board.makeMove(move), false, originalPlayer, maxDepth - 1)
-      bestEval = Math.max(result, bestEval)
+    const op = (acc, move) => {
+      const score = minimax(board.makeMove(move), false, originalPlayer, maxDepth - 1)
+      return Math.max(acc, score)
     }
-    return bestEval
+    return board.legalMoves().reduce(op, Number.MIN_SAFE_INTEGER)
   } else {
-    let worstEval = Number.MAX_SAFE_INTEGER
-    // TODO: board.legalMoves().reduce ?
-    for (const move of board.legalMoves()) {
-      const result = minimax(board.makeMove(move), true, originalPlayer, maxDepth - 1)
-      worstEval = Math.min(result, worstEval)
+    const op = (acc, move) => {
+      const score = minimax(board.makeMove(move), true, originalPlayer, maxDepth - 1)
+      return Math.min(acc, score)
     }
-    return worstEval
+    return board.legalMoves().reduce(op, Number.MAX_SAFE_INTEGER)
   }
 }
 
 const findBestMove = (board, maxDepth) => {
-  let bestEval = Number.MIN_SAFE_INTEGER
-  let bestMove = undefined
-  // TODO: board.legalMoves().reduce ?
-  for (const move of board.legalMoves()) {
-    const result = minimax(board.makeMove(move), true, board.turn, maxDepth)
-    if (result > bestEval) {
-      bestEval = result
-      bestMove = move
-    }
+  const seed = { score: Number.MIN_SAFE_INTEGER }
+  const op = (acc, move) => {
+    const score = minimax(board.makeMove(move), true, board.turn, maxDepth)
+    return score > acc.score
+      ? { score, move }
+      : acc
   }
-  return bestMove
+  const { move } = board.legalMoves().reduce(op, seed)
+  return move
 }
 
 module.exports = {
