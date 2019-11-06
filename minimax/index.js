@@ -53,7 +53,7 @@ const minimax = (board, maximising, originalPlayer, maxDepth) => {
 const findBestMove = (board, maxDepth) => {
   const seed = { score: Number.MIN_SAFE_INTEGER }
   const op = (acc, move) => {
-    const score = minimax(board.makeMove(move), true, board.turn, maxDepth)
+    const score = minimax(board.makeMove(move), false, board.turn, maxDepth)
     return score > acc.score
       ? { score, move }
       : acc

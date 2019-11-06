@@ -171,6 +171,8 @@ class Board extends BoardBase {
       const line = chars.join(' ')
       console.log(line)
     }
+    const columnNumbers = range(NUM_COLUMNS).map(c => c + 1).join(' ')
+    console.log(columnNumbers)
   }
 }
 
