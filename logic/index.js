@@ -83,7 +83,7 @@ class Column {
     return this._container.length === NUM_ROWS
   }
 
-  itemAt(index) {
+  rowAt(index) {
     if (index >= this._container.length) return E
     return this._container[index]
   }
@@ -102,9 +102,9 @@ class Column {
 
 class Board extends BoardBase {
 
-  constructor(position, turn) {
+  constructor(columns, turn) {
     super()
-    this._position = position || range(NUM_COLUMNS).map(() => new Column())
+    this._columns = columns || range(NUM_COLUMNS).map(() => new Column())
     this._turn = turn || R
   }
 
@@ -116,21 +116,21 @@ class Board extends BoardBase {
     for (const segment of SEGMENTS) {
       const { redCount, yellowCount } = this._countSegment(segment)
       if (redCount === SEGMENT_LENGTH || yellowCount === SEGMENT_LENGTH) {
-        return true
+        return segment
       }
     }
     return false
   }
 
   legalMoves() {
-    return range(NUM_COLUMNS).filter(c => !this._position[c].full)
+    return range(NUM_COLUMNS).filter(c => !this._columns[c].full)
   }
 
   makeMove(c) {
-    const newPosition = this._position.map(p => p.copy())
-    newPosition[c].push(this.turn)
+    const newColumns = this._columns.map(p => p.copy())
+    newColumns[c].push(this.turn)
     const newTurn = this.turn.opposite
-    return new Board(newPosition, newTurn)
+    return new Board(newColumns, newTurn)
   }
 
   evaluate(player) {
@@ -141,7 +141,7 @@ class Board extends BoardBase {
 
   _countSegment(segment) {
     const countPieces = piece => segment
-      .filter(([row, col]) => this._position[col].itemAt(row) === piece)
+      .filter(([row, col]) => this._columns[col].rowAt(row) === piece)
       .length
     const redCount = countPieces(R)
     const yellowCount = countPieces(Y)
@@ -165,14 +165,9 @@ class Board extends BoardBase {
     return colour === bestColour ? bestScore : -bestScore
   }
 
-  draw() {
-    for (const r of range(NUM_ROWS).reverse()) {
-      const chars = range(NUM_COLUMNS).map(c => this._position[c].itemAt(r).piece)
-      const line = chars.join(' ')
-      console.log(line)
-    }
-    const columnNumbers = range(NUM_COLUMNS).map(c => c + 1).join(' ')
-    console.log(columnNumbers)
+  get boardState() {
+    return range(NUM_ROWS).map(row =>
+      range(NUM_COLUMNS).map(col => this._columns[col].rowAt(row).piece).join(''))
   }
 }
 
