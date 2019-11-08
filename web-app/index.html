@@ -4,12 +4,23 @@
 <head>
   <title>Connect Four</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .cloak {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
   <span class="version">(version: <%= htmlWebpackPlugin.options.version %>)</span>
   <div class="container">
-      <svg id="board" width="630" height="542.5" style="background-color: aliceblue;"></svg>
+    <div class="top-area"></div>
+    <div class="middle-area">
+      <svg width="630" height="542.5"></svg>
+    </div>
+    <div class="bottom-area">
+      <button id="start-btn" class="cloak">Start</button>
+    </div>
   </div>
 </body>
 

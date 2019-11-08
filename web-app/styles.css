@@ -18,23 +18,37 @@ html, body {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
 }
 
-.board-background {
+.top-area {
+  flex: 1;
+}
+
+.middle-area {
+  display: flex;
+  justify-content: center;
+}
+
+.bottom-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 1rem;
+}
+
+.grid {
   fill: #175DDE;
   fill-rule: evenodd;
 }
 
-/* TODO: add shine effect, etc.
-.board-piece {
-} */
-
-.board-piece--human {
+.piece-human {
   fill: red;
 }
 
-.board-piece--computer {
+.piece-computer {
   fill: yellow;
 }

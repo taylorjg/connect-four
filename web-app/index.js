@@ -1,15 +1,17 @@
 import { Board } from '../logic'
 import { findBestMove } from '../minimax'
 
+const MAX_DEPTH = 3
 const NUM_ROWS = 6
 const NUM_COLUMNS = 7
 const HUMAN_PLAYER = Symbol('HUMAN_PLAYER')
 const COMPUTER_PLAYER = Symbol('HUMAN_PLAYER')
 
-const boardElement = document.getElementById('board')
+const svgElement = document.querySelector('svg')
+const startButton = document.getElementById('start-btn')
 
-const w = boardElement.scrollWidth
-const h = boardElement.scrollHeight
+const w = svgElement.scrollWidth
+const h = svgElement.scrollHeight
 const dx = w / (NUM_COLUMNS * 4 + NUM_COLUMNS + 1)
 const dy = h / (NUM_ROWS * 4 + NUM_ROWS + 1)
 const rx = 2 * dx
@@ -25,7 +27,7 @@ export const createSvgElement = (elementName, additionalAttributes = {}) => {
   return element
 }
 
-const drawBackground = () => {
+const drawGrid = () => {
   const rect = `M0,0 h${w} v${h} h${-w}`
   const cutouts = []
   for (let row = 0; row < 6; row++) {
@@ -37,21 +39,21 @@ const drawBackground = () => {
     }
   }
   const d = [rect, ...cutouts].join(' ')
-  const backgroundElement = createSvgElement('path', {
-    class: 'board-background',
+  const gridElement = createSvgElement('path', {
+    class: 'grid',
     d
   })
-  boardElement.appendChild(backgroundElement)
+  svgElement.appendChild(gridElement)
 }
 
 const makeRowColKey = (row, col) => `${row}-${col}`
 
-const drawBoard = () => {
+const drawPieces = () => {
   board.boardState.forEach((line, row) => {
     Array.from(line).forEach((ch, col) => {
       if (ch !== 'R' && ch !== 'Y') return
       const key = makeRowColKey(row, col)
-      const pieceElement = boardElement.querySelector(`[data-row-col='${key}']`)
+      const pieceElement = svgElement.querySelector(`[data-row-col='${key}']`)
       if (!pieceElement) {
         const player = ch === 'R' ? HUMAN_PLAYER : COMPUTER_PLAYER
         drawPiece(row, col, player)
@@ -62,8 +64,8 @@ const drawBoard = () => {
 
 const drawPiece = (row, col, player) => {
   const classNames = [
-    'board-piece',
-    player === HUMAN_PLAYER ? 'board-piece--human' : 'board-piece--computer'
+    'piece',
+    player === HUMAN_PLAYER ? 'piece-human' : 'piece-computer'
   ].join(' ')
   const cx = (3 + 5 * col) * dx
   const cy = (3 + 5 * (NUM_ROWS - row - 1)) * dy
@@ -75,7 +77,14 @@ const drawPiece = (row, col, player) => {
     cy,
     r
   })
-  boardElement.insertBefore(pieceElement, boardElement.firstChild)
+  svgElement.insertBefore(pieceElement, svgElement.firstChild)
+}
+
+const clearGrid = () => {
+  const pieceElements = svgElement.querySelectorAll('.piece')
+  for (const pieceElement of pieceElements) {
+    svgElement.removeChild(pieceElement)
+  }
 }
 
 const xToCol = x => {
@@ -85,20 +94,49 @@ const xToCol = x => {
 }
 
 const onBoardClick = e => {
-  if (board.isWin || board.isWin) return
+  if (gameOver()) return
   const x = e.offsetX
   const humanMove = xToCol(x)
   if (!board.legalMoves().includes(humanMove)) return
   board = board.makeMove(humanMove)
-  drawBoard(Board)
-  const computerMove = findBestMove(board, 3)
+  drawPieces(Board)
+  if (gameOver()) return
+  const computerMove = findBestMove(board, MAX_DEPTH)
   board = board.makeMove(computerMove)
-  drawBoard(Board)
+  drawPieces(Board)
+  if (gameOver()) return
+}
+
+const gameOver = () => {
+  if (board.isWin || board.isDraw) {
+    showStartButton()
+    return true
+  }
+  return false
+}
+
+const showStartButton = () => {
+  startButton.style.display = 'block'
+}
+
+const hideStartButton = () => {
+  startButton.style.display = 'none'
+}
+
+const reset = () => {
+  clearGrid()
+  board = new Board()
+  hideStartButton()
+}
+
+const onStart = () => {
+  reset()
 }
 
 const main = () => {
-  boardElement.addEventListener('click', onBoardClick)
-  drawBackground()
+  svgElement.addEventListener('click', onBoardClick)
+  startButton.addEventListener('click', onStart)
+  drawGrid()
 }
 
 main()
