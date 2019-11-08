@@ -1,14 +1,17 @@
 {
   "name": "connect-four",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.2",
+  "description": "Connect 4 console app and web app using minimax",
   "author": "Jonathan Taylor",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "express": "^4.17.1"
+  },
   "scripts": {
     "eslint": "eslint .",
-    "start:dev": "webpack-dev-server"
+    "build": "webpack",
+    "start:dev": "webpack-dev-server",
+    "start": "node server"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^5.0.5",
