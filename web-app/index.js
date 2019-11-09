@@ -2,7 +2,7 @@ import { Board } from '../logic'
 import { findBestMove } from '../minimax'
 
 const url = new URL(window.location)
-const auto = url.searchParams.has('auto')
+const autoplay = url.searchParams.has('autoplay')
 
 const MAX_DEPTH = 3
 const NUM_ROWS = 6
@@ -107,7 +107,7 @@ const onBoardClick = e => {
   if (gameOver()) return
   const x = e.offsetX
   const col = xToCol(x)
-  if (auto) {
+  if (autoplay) {
     if (firstMove) {
       if (!board.legalMoves().includes(col)) return
       board = board.makeMove(col)
