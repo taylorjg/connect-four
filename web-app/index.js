@@ -1,14 +1,25 @@
 import { Board } from '../logic'
 import { findBestMove } from '../minimax'
 
-const url = new URL(window.location)
-const autoplay = url.searchParams.has('autoplay')
-
-const MAX_DEPTH = 3
+const DEFAULT_MAX_DEPTH = 3
+const MIN_MAX_DEPTH = 2
+const MAX_MAX_DEPTH = 5
 const NUM_ROWS = 6
 const NUM_COLUMNS = 7
 const HUMAN_PLAYER = Symbol('HUMAN_PLAYER')
 const COMPUTER_PLAYER = Symbol('HUMAN_PLAYER')
+
+const url = new URL(window.location)
+const autoplay = url.searchParams.has('autoplay')
+const maxDepthParamString = url.searchParams.get('maxDepth') || undefined
+const maxDepthParamNumber = Number(maxDepthParamString)
+const maxDepth =
+  Number.isInteger(maxDepthParamNumber) &&
+    maxDepthParamNumber >= MIN_MAX_DEPTH &&
+    maxDepthParamNumber <= MAX_MAX_DEPTH
+    ? maxDepthParamNumber
+    : DEFAULT_MAX_DEPTH
+console.log(`maxDepth: ${maxDepth}`)
 
 const svgElement = document.querySelector('svg')
 const startButton = document.getElementById('start-btn')
@@ -112,7 +123,7 @@ const onBoardClick = e => {
       if (!board.legalMoves().includes(col)) return
       board = board.makeMove(col)
     } else {
-      board = board.makeMove(findBestMove(board, MAX_DEPTH))
+      board = board.makeMove(findBestMove(board, maxDepth))
     }
   } else {
     if (!board.legalMoves().includes(col)) return
@@ -121,7 +132,7 @@ const onBoardClick = e => {
   drawPieces(Board)
   firstMove = false
   if (gameOver()) return
-  board = board.makeMove(findBestMove(board, MAX_DEPTH))
+  board = board.makeMove(findBestMove(board, maxDepth))
   drawPieces(Board)
   if (gameOver()) return
 }
