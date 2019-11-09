@@ -1,6 +1,9 @@
 import { Board } from '../logic'
 import { findBestMove } from '../minimax'
 
+const url = new URL(window.location)
+const auto = url.searchParams.has('auto')
+
 const MAX_DEPTH = 3
 const NUM_ROWS = 6
 const NUM_COLUMNS = 7
@@ -19,6 +22,7 @@ const ry = 2 * dy
 const r = (rx + ry) / 2 + 1
 
 let board = new Board()
+let firstMove = true
 let gameOverFlag = false
 
 const createSvgElement = (elementName, cssClass, attributes = {}) => {
@@ -102,13 +106,22 @@ const xToCol = x => {
 const onBoardClick = e => {
   if (gameOver()) return
   const x = e.offsetX
-  const humanMove = xToCol(x)
-  if (!board.legalMoves().includes(humanMove)) return
-  board = board.makeMove(humanMove)
+  const col = xToCol(x)
+  if (auto) {
+    if (firstMove) {
+      if (!board.legalMoves().includes(col)) return
+      board = board.makeMove(col)
+    } else {
+      board = board.makeMove(findBestMove(board, MAX_DEPTH))
+    }
+  } else {
+    if (!board.legalMoves().includes(col)) return
+    board = board.makeMove(col)
+  }
   drawPieces(Board)
+  firstMove = false
   if (gameOver()) return
-  const computerMove = findBestMove(board, MAX_DEPTH)
-  board = board.makeMove(computerMove)
+  board = board.makeMove(findBestMove(board, MAX_DEPTH))
   drawPieces(Board)
   if (gameOver()) return
 }
@@ -135,6 +148,7 @@ const hideStartButton = () => {
 const reset = () => {
   clearGrid()
   board = new Board()
+  firstMove = true
   gameOverFlag = false
   hideStartButton()
 }
