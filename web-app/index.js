@@ -20,9 +20,10 @@ const r = (rx + ry) / 2 + 1
 
 let board = new Board()
 
-export const createSvgElement = (elementName, additionalAttributes = {}) => {
+const createSvgElement = (elementName, cssClass, attributes = {}) => {
   const element = document.createElementNS('http://www.w3.org/2000/svg', elementName)
-  Object.entries(additionalAttributes).forEach(([name, value]) =>
+  element.setAttribute('class', cssClass)
+  Object.entries(attributes).forEach(([name, value]) =>
     element.setAttribute(name, value))
   return element
 }
@@ -39,21 +40,18 @@ const drawGrid = () => {
     }
   }
   const d = [rect, ...cutouts].join(' ')
-  const gridElement = createSvgElement('path', {
-    class: 'grid',
-    d
-  })
+  const gridElement = createSvgElement('path', 'grid', { d })
   svgElement.appendChild(gridElement)
 }
 
-const makeRowColKey = (row, col) => `${row}-${col}`
+const makePosKey = (row, col) => `${row}-${col}`
 
 const drawPieces = () => {
   board.boardState.forEach((line, row) => {
     Array.from(line).forEach((ch, col) => {
       if (ch !== 'R' && ch !== 'Y') return
-      const key = makeRowColKey(row, col)
-      const pieceElement = svgElement.querySelector(`[data-row-col='${key}']`)
+      const posKey = makePosKey(row, col)
+      const pieceElement = svgElement.querySelector(`[data-pos='${posKey}']`)
       if (!pieceElement) {
         const player = ch === 'R' ? HUMAN_PLAYER : COMPUTER_PLAYER
         drawPiece(row, col, player)
@@ -63,27 +61,34 @@ const drawPieces = () => {
 }
 
 const drawPiece = (row, col, player) => {
-  const classNames = [
-    'piece',
-    player === HUMAN_PLAYER ? 'piece-human' : 'piece-computer'
-  ].join(' ')
+  const piecePlayer = player === HUMAN_PLAYER ? 'piece-human' : 'piece-computer'
+  const classNames = ['piece', piecePlayer].join(' ')
   const cx = (3 + 5 * col) * dx
   const cy = (3 + 5 * (NUM_ROWS - row - 1)) * dy
-  const key = makeRowColKey(row, col)
-  const pieceElement = createSvgElement('circle', {
-    'class': classNames,
-    'data-row-col': key,
-    cx,
-    cy,
-    r
-  })
+  const posKey = makePosKey(row, col)
+  const attributes = { 'data-pos': posKey, cx, cy, r }
+  const pieceElement = createSvgElement('circle', classNames, attributes)
   svgElement.insertBefore(pieceElement, svgElement.firstChild)
 }
 
+const highlightWinningLine = winningSegment => {
+  for (const [row, col] of winningSegment) {
+    drawHighlight(row, col)
+  }
+}
+
+const drawHighlight = (row, col) => {
+  const cx = (3 + 5 * col) * dx
+  const cy = (3 + 5 * (NUM_ROWS - row - 1)) * dy
+  const attributes = { cx, cy, r }
+  const highlightElement = createSvgElement('circle', 'piece-highlight', attributes)
+  svgElement.appendChild(highlightElement)
+}
+
 const clearGrid = () => {
-  const pieceElements = svgElement.querySelectorAll('.piece')
-  for (const pieceElement of pieceElements) {
-    svgElement.removeChild(pieceElement)
+  const elements = svgElement.querySelectorAll('.piece, .piece-highlight')
+  for (const element of elements) {
+    svgElement.removeChild(element)
   }
 }
 
@@ -109,6 +114,7 @@ const onBoardClick = e => {
 
 const gameOver = () => {
   if (board.isWin || board.isDraw) {
+    board.isWin && highlightWinningLine(board.isWin)
     showStartButton()
     return true
   }

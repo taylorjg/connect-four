@@ -52,3 +52,9 @@ html, body {
 .piece-computer {
   fill: yellow;
 }
+
+.piece-highlight {
+  fill: none;
+  stroke: magenta;
+  stroke-width: 4px;
+}
