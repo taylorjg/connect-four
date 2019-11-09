@@ -6,6 +6,12 @@ html, body {
   position: relative;
 }
 
+.ribbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .version {
   position: absolute;
   top: 1rem;
@@ -56,5 +62,5 @@ html, body {
 .piece-highlight {
   fill: none;
   stroke: magenta;
-  stroke-width: 4px;
+  stroke-width: 5px;
 }

@@ -19,6 +19,7 @@ const ry = 2 * dy
 const r = (rx + ry) / 2 + 1
 
 let board = new Board()
+let gameOverFlag = false
 
 const createSvgElement = (elementName, cssClass, attributes = {}) => {
   const element = document.createElementNS('http://www.w3.org/2000/svg', elementName)
@@ -113,9 +114,11 @@ const onBoardClick = e => {
 }
 
 const gameOver = () => {
+  if (gameOverFlag) return true
   if (board.isWin || board.isDraw) {
     board.isWin && highlightWinningLine(board.isWin)
     showStartButton()
+    gameOverFlag = true
     return true
   }
   return false
@@ -132,6 +135,7 @@ const hideStartButton = () => {
 const reset = () => {
   clearGrid()
   board = new Board()
+  gameOverFlag = false
   hideStartButton()
 }
 
