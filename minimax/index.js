@@ -31,29 +31,56 @@ class BoardBase {
   }
 }
 
-const minimax = (board, maximising, originalPlayer, maxDepth) => {
+// const minimax = (board, maximising, originalPlayer, maxDepth) => {
+//   if (board.isWin || board.isDraw || maxDepth === 0) {
+//     return board.evaluate(originalPlayer)
+//   }
+//   if (maximising) {
+//     const op = (acc, move) => {
+//       const score = minimax(board.makeMove(move), false, originalPlayer, maxDepth - 1)
+//       return Math.max(acc, score)
+//     }
+//     return board.legalMoves().reduce(op, Number.MIN_SAFE_INTEGER)
+//   } else {
+//     const op = (acc, move) => {
+//       const score = minimax(board.makeMove(move), true, originalPlayer, maxDepth - 1)
+//       return Math.min(acc, score)
+//     }
+//     return board.legalMoves().reduce(op, Number.MAX_SAFE_INTEGER)
+//   }
+// }
+
+const alphabeta = (
+  board,
+  maximising,
+  originalPlayer,
+  maxDepth,
+  alpha = Number.MIN_SAFE_INTEGER,
+  beta = Number.MAX_SAFE_INTEGER) => {
   if (board.isWin || board.isDraw || maxDepth === 0) {
     return board.evaluate(originalPlayer)
   }
   if (maximising) {
-    const op = (acc, move) => {
-      const score = minimax(board.makeMove(move), false, originalPlayer, maxDepth - 1)
-      return Math.max(acc, score)
+    for (const move of board.legalMoves()) {
+      const score = alphabeta(board.makeMove(move), false, originalPlayer, maxDepth - 1, alpha, beta)
+      alpha = Math.max(score, alpha)
+      if (beta <= alpha) break
     }
-    return board.legalMoves().reduce(op, Number.MIN_SAFE_INTEGER)
+    return alpha
   } else {
-    const op = (acc, move) => {
-      const score = minimax(board.makeMove(move), true, originalPlayer, maxDepth - 1)
-      return Math.min(acc, score)
+    for (const move of board.legalMoves()) {
+      const score = alphabeta(board.makeMove(move), true, originalPlayer, maxDepth - 1, alpha, beta)
+      beta = Math.min(score, beta)
+      if (beta <= alpha) break
     }
-    return board.legalMoves().reduce(op, Number.MAX_SAFE_INTEGER)
+    return beta
   }
 }
 
 const findBestMove = (board, maxDepth) => {
   const seed = { score: Number.MIN_SAFE_INTEGER }
   const op = (acc, move) => {
-    const score = minimax(board.makeMove(move), false, board.turn, maxDepth)
+    const score = alphabeta(board.makeMove(move), false, board.turn, maxDepth)
     return score > acc.score
       ? { score, move }
       : acc

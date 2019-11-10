@@ -1,18 +1,18 @@
 # Description
 
-Implementation of the game, Connect 4, inspired by chapter 8 of [Classic Computer Science Problems in Python](https://www.manning.com/books/classic-computer-science-problems-in-python). However, this implementation is in JavaScript:
+Implementation of the game, Connect 4, inspired by chapter 8 (_Adversarial search_) of [Classic Computer Science Problems in Python](https://www.manning.com/books/classic-computer-science-problems-in-python)
+using the [Minimax](https://en.wikipedia.org/wiki/Minimax) algorithm.
+However, this implementation is written in JavaScript:
 
 * a Node.js console app
-* a web app deployed to Heroku
-
-The computer moves are calcuated using [Minimax](https://en.wikipedia.org/wiki/Minimax).
+* a web app using [Scalable Vector Graphics (SVG)](https://developer.mozilla.org/en-US/docs/Web/SVG)
 
 # TODO
 
 * Improve the graphics
 * Add sound effects
 * Responsive UI
-* Implement [alpha–beta pruning](https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning)
+* ~~Implement [alpha–beta pruning](https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning)~~
 
 # Autoplay
 
