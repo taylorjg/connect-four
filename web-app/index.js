@@ -1,7 +1,7 @@
 import { Board } from '../logic'
 import { findBestMove } from '../minimax'
 
-const DEFAULT_MAX_DEPTH = 3
+const DEFAULT_MAX_DEPTH = 5
 const MIN_MAX_DEPTH = 2
 const MAX_MAX_DEPTH = 5
 const NUM_ROWS = 6

@@ -1,7 +1,7 @@
 # Description
 
 Implementation of the game, Connect 4, inspired by chapter 8 (_Adversarial search_) of [Classic Computer Science Problems in Python](https://www.manning.com/books/classic-computer-science-problems-in-python)
-using the [Minimax](https://en.wikipedia.org/wiki/Minimax) algorithm.
+using the [minimax](https://en.wikipedia.org/wiki/Minimax) algorithm.
 However, this implementation is written in JavaScript:
 
 * a Node.js console app
