@@ -1,4 +1,5 @@
 import PromiseWorker from 'promise-worker'
+import { gsap } from 'gsap'
 
 const webWorker = new Worker('./web-worker.js', { type: 'module' })
 const webWorkerP = new PromiseWorker(webWorker)
@@ -83,8 +84,7 @@ const drawGrid = () => {
 
 const makePosKey = (row, col) => `${row}-${col}`
 
-const drawPieces = async () => {
-  const boardState = await makeWebWorkerCall('getBoardState')
+const drawPieces = async boardState => {
   boardState.grid.forEach((line, row) => {
     Array.from(line).forEach((ch, col) => {
       if (ch !== 'R' && ch !== 'Y') return
@@ -101,12 +101,21 @@ const drawPieces = async () => {
 const drawPiece = (row, col, player) => {
   const piecePlayer = player === HUMAN_PLAYER ? 'piece-human' : 'piece-computer'
   const classNames = ['piece', piecePlayer].join(' ')
-  const cx = (3 + 5 * col) * dx
-  const cy = (3 + 5 * (NUM_ROWS - row - 1)) * dy
   const posKey = makePosKey(row, col)
-  const attributes = { 'data-pos': posKey, cx, cy, r }
+  const cx = (3 + 5 * col) * dx
+  const cyStart = r
+  const cyEnd = (3 + 5 * (NUM_ROWS - row - 1)) * dy
+  const attributes = { 'data-pos': posKey, cx, cy: cyStart, r }
   const pieceElement = createSvgElement('circle', classNames, attributes)
   svgElement.insertBefore(pieceElement, svgElement.firstChild)
+  gsap.to(pieceElement, {
+    cy: cyEnd,
+    duration: .5,
+    ease: 'bounce',
+    onComplete: tween => {
+      console.dir(tween)
+    }
+  })
 }
 
 const highlightWinningLine = winningSegment => {
