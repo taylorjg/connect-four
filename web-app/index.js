@@ -3,18 +3,6 @@ import PromiseWorker from 'promise-worker'
 const webWorker = new Worker('./web-worker.js', { type: 'module' })
 const webWorkerP = new PromiseWorker(webWorker)
 
-const makeWebWorkerCall = async (type, args) => {
-  try {
-    console.log('[makeWebWorkerCall] (show spinner)')
-    const message = { type, ...args }
-    const result = await webWorkerP.postMessage(message)
-    console.log(`[makeWebWorkerCall] result: ${JSON.stringify(result)}`)
-    return result
-  } finally {
-    console.log('[makeWebWorkerCall] (hide spinner)')
-  }
-}
-
 const DEFAULT_MAX_DEPTH = 5
 const MIN_MAX_DEPTH = 2
 const MAX_MAX_DEPTH = 7
@@ -36,6 +24,7 @@ console.log(`maxDepth: ${maxDepth}`)
 
 const svgElement = document.querySelector('svg')
 const startButton = document.getElementById('start-btn')
+const spinnerElement = document.getElementById('spinner')
 
 const w = svgElement.scrollWidth
 const h = svgElement.scrollHeight
@@ -47,6 +36,26 @@ const r = (rx + ry) / 2 + 1
 
 let firstMove = true
 let gameOverFlag = false
+
+const showSpinner = () => {
+  spinnerElement.style.display = 'block'
+}
+
+const hideSpinner = () => {
+  spinnerElement.style.display = 'none'
+}
+
+const makeWebWorkerCall = async (type, args) => {
+  try {
+    showSpinner()
+    const message = { type, ...args }
+    const result = await webWorkerP.postMessage(message)
+    console.log(`[makeWebWorkerCall] result: ${JSON.stringify(result)}`)
+    return result
+  } finally {
+    hideSpinner()
+  }
+}
 
 const createSvgElement = (elementName, cssClass, attributes = {}) => {
   const element = document.createElementNS('http://www.w3.org/2000/svg', elementName)
