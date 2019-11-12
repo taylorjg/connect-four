@@ -3,6 +3,7 @@
 const path = require('path')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const WorkerPlugin = require('worker-plugin')
 const { version } = require('./package.json')
 
 const distFolder = path.join(__dirname, 'dist')
@@ -22,7 +23,8 @@ module.exports = {
       template: './web-app/index.html',
       filename: path.resolve(distFolder, 'index.html'),
       version
-    })
+    }),
+    new WorkerPlugin()
   ],
   devtool: 'source-map'
 }

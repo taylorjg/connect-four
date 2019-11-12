@@ -165,7 +165,7 @@ class Board extends BoardBase {
     return colour === bestColour ? bestScore : -bestScore
   }
 
-  get boardState() {
+  get grid() {
     return range(NUM_ROWS).map(row =>
       range(NUM_COLUMNS).map(col => this._columns[col].rowAt(row).piece).join(''))
   }

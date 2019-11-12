@@ -1,24 +1,37 @@
-import { Board } from '../logic'
-import { findBestMove } from '../minimax'
+import PromiseWorker from 'promise-worker'
+
+const webWorker = new Worker('./web-worker.js', { type: 'module' })
+const webWorkerP = new PromiseWorker(webWorker)
+
+const makeWebWorkerCall = async (type, args) => {
+  try {
+    console.log('[makeWebWorkerCall] (show spinner)')
+    const message = { type, ...args }
+    const result = await webWorkerP.postMessage(message)
+    console.log(`[makeWebWorkerCall] result: ${JSON.stringify(result)}`)
+    return result
+  } finally {
+    console.log('[makeWebWorkerCall] (hide spinner)')
+  }
+}
 
 const DEFAULT_MAX_DEPTH = 5
 const MIN_MAX_DEPTH = 2
-const MAX_MAX_DEPTH = 5
+const MAX_MAX_DEPTH = 7
 const NUM_ROWS = 6
 const NUM_COLUMNS = 7
 const HUMAN_PLAYER = Symbol('HUMAN_PLAYER')
 const COMPUTER_PLAYER = Symbol('HUMAN_PLAYER')
 
+const clamp = (min, max, value) => Math.max(min, Math.min(max, value))
+
 const url = new URL(window.location)
 const autoplay = url.searchParams.has('autoplay')
 const maxDepthParamString = url.searchParams.get('maxDepth') || undefined
 const maxDepthParamNumber = Number(maxDepthParamString)
-const maxDepth =
-  Number.isInteger(maxDepthParamNumber) &&
-    maxDepthParamNumber >= MIN_MAX_DEPTH &&
-    maxDepthParamNumber <= MAX_MAX_DEPTH
-    ? maxDepthParamNumber
-    : DEFAULT_MAX_DEPTH
+const maxDepth = Number.isInteger(maxDepthParamNumber)
+  ? clamp(MIN_MAX_DEPTH, MAX_MAX_DEPTH, maxDepthParamNumber)
+  : DEFAULT_MAX_DEPTH
 console.log(`maxDepth: ${maxDepth}`)
 
 const svgElement = document.querySelector('svg')
@@ -32,7 +45,6 @@ const rx = 2 * dx
 const ry = 2 * dy
 const r = (rx + ry) / 2 + 1
 
-let board = new Board()
 let firstMove = true
 let gameOverFlag = false
 
@@ -62,8 +74,9 @@ const drawGrid = () => {
 
 const makePosKey = (row, col) => `${row}-${col}`
 
-const drawPieces = () => {
-  board.boardState.forEach((line, row) => {
+const drawPieces = async () => {
+  const boardState = await makeWebWorkerCall('getBoardState')
+  boardState.grid.forEach((line, row) => {
     Array.from(line).forEach((ch, col) => {
       if (ch !== 'R' && ch !== 'Y') return
       const posKey = makePosKey(row, col)
@@ -114,35 +127,43 @@ const xToCol = x => {
   return dxs % 5 ? col : -1
 }
 
-const onBoardClick = e => {
-  if (gameOver()) return
-  const x = e.offsetX
-  const col = xToCol(x)
+const onBoardClick = async e => {
+
+  // TODO: protect against re-entrancy
+  // i.e. a click occurring whilst a previous click is still being processed
+
+  let boardState = await makeWebWorkerCall('getBoardState')
+
+  if (await gameOver(boardState)) return
+
+  const col = xToCol(e.offsetX)
+
   if (autoplay) {
     if (firstMove) {
-      if (!board.legalMoves().includes(col)) return
-      board = board.makeMove(col)
+      if (!boardState.legalMoves.includes(col)) return
+      boardState = await makeWebWorkerCall('makeHumanMove', { move: col })
     } else {
-      board = board.makeMove(findBestMove(board, maxDepth))
+      boardState = await makeWebWorkerCall('makeComputerMove', { maxDepth })
     }
   } else {
-    if (!board.legalMoves().includes(col)) return
-    board = board.makeMove(col)
+    if (!boardState.legalMoves.includes(col)) return
+    boardState = await makeWebWorkerCall('makeHumanMove', { move: col })
   }
-  drawPieces(Board)
-  firstMove = false
-  if (gameOver()) return
-  board = board.makeMove(findBestMove(board, maxDepth))
-  drawPieces(Board)
-  if (gameOver()) return
+  await drawPieces(boardState)
+  firstMove = false // eslint-disable-line require-atomic-updates
+  if (await gameOver(boardState)) return
+
+  boardState = await makeWebWorkerCall('makeComputerMove', { maxDepth })
+  await drawPieces(boardState)
+  if (await gameOver(boardState)) return
 }
 
-const gameOver = () => {
+const gameOver = async boardState => {
   if (gameOverFlag) return true
-  if (board.isWin || board.isDraw) {
-    board.isWin && highlightWinningLine(board.isWin)
+  if (boardState.isWin || boardState.isDraw) {
+    boardState.isWin && highlightWinningLine(boardState.isWin)
     showStartButton()
-    gameOverFlag = true
+    gameOverFlag = true // eslint-disable-line require-atomic-updates
     return true
   }
   return false
@@ -156,9 +177,9 @@ const hideStartButton = () => {
   startButton.style.display = 'none'
 }
 
-const reset = () => {
+const reset = async () => {
+  await makeWebWorkerCall('resetBoardState')
   clearGrid()
-  board = new Board()
   firstMove = true
   gameOverFlag = false
   hideStartButton()

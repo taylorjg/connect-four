@@ -1,11 +1,13 @@
 {
   "name": "connect-four",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Connect 4 console app and web app using minimax",
   "author": "Jonathan Taylor",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "promise-worker": "^2.0.1",
+    "worker-plugin": "^3.2.0"
   },
   "scripts": {
     "eslint": "eslint .",

@@ -56,10 +56,10 @@ const colourise = (board, row, col, ch) => {
 
 const drawBoard = board => {
   console.log()
-  const lines = board.boardState.map((line, row) =>
+  const lines = board.grid.map((line, row) =>
     Array.from(line).map((ch, col) => colourise(board, row, col, ch)).join(' '))
   lines.reverse().forEach(line => console.log(line))
-  const columnNumbers = Array.from(board.boardState[0]).map((_, index) => index + 1).join(' ')
+  const columnNumbers = Array.from(board.grid[0]).map((_, index) => index + 1).join(' ')
   console.log(columnNumbers)
   console.log()
 }
