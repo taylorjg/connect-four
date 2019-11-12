@@ -36,6 +36,7 @@ const ry = 2 * dy
 const r = (rx + ry) / 2 + 1
 
 let firstMove = true
+let moveInProgress = false
 let gameOverFlag = false
 
 const showSpinner = () => {
@@ -85,38 +86,39 @@ const drawGrid = () => {
 const makePosKey = (row, col) => `${row}-${col}`
 
 const drawPieces = async boardState => {
-  boardState.grid.forEach((line, row) => {
-    Array.from(line).forEach((ch, col) => {
+  const outerPromises = boardState.grid.map(async (line, row) => {
+    const innerPromises = Array.from(line).map(async (ch, col) => {
       if (ch !== 'R' && ch !== 'Y') return
       const posKey = makePosKey(row, col)
       const pieceElement = svgElement.querySelector(`[data-pos='${posKey}']`)
       if (!pieceElement) {
         const player = ch === 'R' ? HUMAN_PLAYER : COMPUTER_PLAYER
-        drawPiece(row, col, player)
+        await drawPiece(row, col, player)
       }
     })
+    return Promise.all(innerPromises)
   })
+  return Promise.all(outerPromises)
 }
 
-const drawPiece = (row, col, player) => {
-  const piecePlayer = player === HUMAN_PLAYER ? 'piece-human' : 'piece-computer'
-  const classNames = ['piece', piecePlayer].join(' ')
-  const posKey = makePosKey(row, col)
-  const cx = (3 + 5 * col) * dx
-  const cyStart = r
-  const cyEnd = (3 + 5 * (NUM_ROWS - row - 1)) * dy
-  const attributes = { 'data-pos': posKey, cx, cy: cyStart, r }
-  const pieceElement = createSvgElement('circle', classNames, attributes)
-  svgElement.insertBefore(pieceElement, svgElement.firstChild)
-  gsap.to(pieceElement, {
-    cy: cyEnd,
-    duration: .5,
-    ease: 'bounce',
-    onComplete: tween => {
-      console.dir(tween)
-    }
+const drawPiece = async (row, col, player) =>
+  new Promise(resolve => {
+    const piecePlayer = player === HUMAN_PLAYER ? 'piece-human' : 'piece-computer'
+    const classNames = ['piece', piecePlayer].join(' ')
+    const posKey = makePosKey(row, col)
+    const cx = (3 + 5 * col) * dx
+    const cyStart = 0
+    const cyEnd = (3 + 5 * (NUM_ROWS - row - 1)) * dy
+    const attributes = { 'data-pos': posKey, cx, cy: cyStart, r }
+    const pieceElement = createSvgElement('circle', classNames, attributes)
+    svgElement.insertBefore(pieceElement, svgElement.firstChild)
+    gsap.to(pieceElement, {
+      cy: cyEnd,
+      duration: 1,
+      ease: 'bounce',
+      onComplete: () => resolve()
+    })
   })
-}
 
 const highlightWinningLine = winningSegment => {
   for (const [row, col] of winningSegment) {
@@ -146,34 +148,34 @@ const xToCol = x => {
 }
 
 const onBoardClick = async e => {
-
-  // TODO: protect against re-entrancy
-  // i.e. a click occurring whilst a previous click is still being processed
-
-  let boardState = await makeWebWorkerCall('getBoardState')
-
-  if (await gameOver(boardState)) return
-
-  const col = xToCol(e.offsetX)
-
-  if (autoplay) {
-    if (firstMove) {
+  if (moveInProgress) return
+  try {
+    moveInProgress = true
+    let boardState = await makeWebWorkerCall('getBoardState')
+    if (await gameOver(boardState)) return
+    const col = xToCol(e.offsetX)
+    if (autoplay) {
+      if (firstMove) {
+        if (!boardState.legalMoves.includes(col)) return
+        boardState = await makeWebWorkerCall('makeHumanMove', { move: col })
+      } else {
+        boardState = await makeWebWorkerCall('makeComputerMove', { maxDepth })
+      }
+    } else {
       if (!boardState.legalMoves.includes(col)) return
       boardState = await makeWebWorkerCall('makeHumanMove', { move: col })
-    } else {
-      boardState = await makeWebWorkerCall('makeComputerMove', { maxDepth })
     }
-  } else {
-    if (!boardState.legalMoves.includes(col)) return
-    boardState = await makeWebWorkerCall('makeHumanMove', { move: col })
+    const [, boardState2] = await Promise.all([
+      drawPieces(boardState),
+      makeWebWorkerCall('makeComputerMove', { maxDepth })
+    ])
+    if (await gameOver(boardState)) return
+    await drawPieces(boardState2)
+    if (await gameOver(boardState2)) return
+  } finally {
+    firstMove = false // eslint-disable-line require-atomic-updates
+    moveInProgress = false // eslint-disable-line require-atomic-updates
   }
-  await drawPieces(boardState)
-  firstMove = false // eslint-disable-line require-atomic-updates
-  if (await gameOver(boardState)) return
-
-  boardState = await makeWebWorkerCall('makeComputerMove', { maxDepth })
-  await drawPieces(boardState)
-  if (await gameOver(boardState)) return
 }
 
 const gameOver = async boardState => {
@@ -199,6 +201,7 @@ const reset = async () => {
   await makeWebWorkerCall('resetBoardState')
   clearGrid()
   firstMove = true
+  moveInProgress = false
   gameOverFlag = false
   hideStartButton()
 }
