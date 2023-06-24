@@ -1,6 +1,6 @@
 {
   "name": "connect-four",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Connect 4 console app and web app using minimax",
   "author": "Jonathan Taylor",
   "license": "MIT",
