@@ -20,7 +20,7 @@ If the `autoplay` query param is present, then the computer plays against itself
 click. The first move is placed in the column clicked. Subsequent moves are calculated automatically
 and the actual column clicked is ignored.
 
-* connect-four-jt.herokuapp.com?autoplay
+* https://taylorjg.github.io/connect-four?autoplay
 
 # Links
 
